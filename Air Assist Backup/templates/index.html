@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AirAssist – AI-Powered Air Quality Monitoring & Health Advisory</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <!-- ==================== HEADER & NAVBAR ==================== -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand-group" onclick="switchTab('home')">
+        <div class="brand-logo">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="19" stroke="url(#logo-grad)" stroke-width="2" />
+            <path d="M12 24C12 24 14 16 20 16C26 16 28 24 28 24" stroke="url(#logo-grad)" stroke-width="2.5" stroke-linecap="round" />
+            <path d="M16 20C16 17 18 13 20 13C22 13 24 17 24 20" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" />
+            <circle cx="20" cy="27" r="2.5" fill="#10b981" />
+            <defs>
+              <linearGradient id="logo-grad" x1="0" y1="0" x2="40" y2="40">
+                <stop stop-color="#0284c7" />
+                <stop offset="1" stop-color="#10b981" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">Air<span class="accent-text">Assist</span></div>
+          <div class="brand-sub">Breathe Better. Live Healthier.</div>
+        </div>
+      </div>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="nav-links">
+        <button class="nav-btn active" data-tab="home" onclick="switchTab('home')">
+          <i class="fa-solid fa-house"></i> Home
+        </button>
+        <button class="nav-btn" data-tab="realtime" onclick="switchTab('realtime')">
+          <i class="fa-solid fa-gauge-high"></i> Live AQI
+        </button>
+        <button class="nav-btn" data-tab="historical" onclick="switchTab('historical')">
+          <i class="fa-solid fa-chart-line"></i> Historical Analysis
+        </button>
+        <button class="nav-btn" data-tab="chatbot" onclick="switchTab('chatbot')">
+          <i class="fa-solid fa-robot"></i> AI Health Advisor
+        </button>
+        <button class="nav-btn" data-tab="awareness" onclick="switchTab('awareness')">
+          <i class="fa-solid fa-shield-heart"></i> Health Guide
+        </button>
+      </nav>
+
+      <!-- Active City Selector & Live Pulse -->
+      <div class="nav-actions">
+        <div class="live-pill" title="Connected to genuine real-time atmospheric sensor gateway">
+          <span class="pulse-dot"></span>
+          <span class="pill-text">LIVE SENSOR</span>
+        </div>
+        <div class="city-selector-wrap">
+          <i class="fa-solid fa-location-dot city-icon"></i>
+          <input type="text" id="globalCityInput" class="city-input" placeholder="Search Indian city..." autocomplete="off" />
+          <div id="cityDropdownList" class="city-dropdown hidden"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+  <main class="main-content">
+
+    <!-- ============================================================= -->
+    <!-- MODULE 1: HOMEPAGE / OVERVIEW                                  -->
+    <!-- ============================================================= -->
+    <section id="tab-home" class="tab-pane active">
+      
+      <!-- Hero Banner -->
+      <div class="hero-card">
+        <div class="hero-content">
+          <div class="badge hero-badge">
+            <i class="fa-solid fa-wind"></i> National Environmental & Health Platform
+          </div>
+          <h1 class="hero-title">
+            Real-Time Air Quality & <br /><span class="gradient-text">Actionable Health Guidance</span> for Indian Cities
+          </h1>
+          <p class="hero-desc">
+            Transforming complex atmospheric data into clear, personalized health protection. 
+            Combining official CPCB monitoring records with genuine real-time sensors and AI-grounded medical advice.
+          </p>
+
+          <!-- Quick Search Bar -->
+          <div class="hero-search-box">
+            <div class="search-input-group">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="heroCitySearch" placeholder="Enter city (e.g., Delhi, Bengaluru, Mumbai, Patna)..." autocomplete="off" />
+              <button class="btn btn-primary" onclick="handleHeroSearch()">
+                Check Air Quality <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+            <div id="heroCitySuggestions" class="city-dropdown hidden"></div>
+          </div>
+
+          <!-- Popular Metro Quick Links -->
+          <div class="quick-cities">
+            <span class="quick-label">Popular Metros:</span>
+            <button class="city-chip" onclick="selectCityByName('Delhi')">Delhi</button>
+            <button class="city-chip" onclick="selectCityByName('Bengaluru')">Bengaluru</button>
+            <button class="city-chip" onclick="selectCityByName('Mumbai')">Mumbai</button>
+            <button class="city-chip" onclick="selectCityByName('Kolkata')">Kolkata</button>
+            <button class="city-chip" onclick="selectCityByName('Chennai')">Chennai</button>
+            <button class="city-chip" onclick="selectCityByName('Hyderabad')">Hyderabad</button>
+            <button class="city-chip" onclick="selectCityByName('Lucknow')">Lucknow</button>
+            <button class="city-chip" onclick="selectCityByName('Patna')">Patna</button>
+            <button class="city-chip" onclick="selectCityByName('Pune')">Pune</button>
+          </div>
+        </div>
+
+        <!-- Hero Graphic / Live Snapshot Card -->
+        <div class="hero-visual">
+          <div class="live-snapshot-card" id="homeSnapshotCard">
+            <div class="snapshot-header">
+              <div class="snapshot-city" id="homeHeroCity">Delhi</div>
+              <div class="snapshot-badge" id="homeHeroBadge">Loading...</div>
+            </div>
+            <div class="snapshot-aqi-row">
+              <div class="snapshot-val" id="homeHeroAqi">--</div>
+              <div class="snapshot-meta">
+                <span class="snapshot-label">CPCB NAQI</span>
+                <span class="snapshot-pollutant" id="homeHeroPollutant">PM2.5 Primary</span>
+              </div>
+            </div>
+            <div class="snapshot-bars">
+              <div class="pollutant-mini-bar">
+                <span>PM2.5</span>
+                <div class="bar-bg"><div class="bar-fill" id="homeHeroBarPM25" style="width: 70%"></div></div>
+                <strong id="homeHeroValPM25">--</strong>
+              </div>
+              <div class="pollutant-mini-bar">
+                <span>PM10</span>
+                <div class="bar-bg"><div class="bar-fill" id="homeHeroBarPM10" style="width: 55%"></div></div>
+                <strong id="homeHeroValPM10">--</strong>
+              </div>
+            </div>
+            <div class="snapshot-advisory" id="homeHeroAdvisory">
+              Fetching genuine atmospheric data...
+            </div>
+            <div class="snapshot-action">
+              <button class="btn btn-secondary btn-block" onclick="switchTab('realtime')">
+                View Full Real-Time Dashboard <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AQI Categories Guide (CPCB Official Standards) -->
+      <div class="section-block">
+        <div class="section-title-wrap">
+          <h2 class="section-title">Understanding the Indian Air Quality Index (NAQI)</h2>
+          <p class="section-subtitle">Official CPCB health classifications and color-coded risk bands</p>
+        </div>
+        <div class="aqi-grid">
+          <div class="aqi-card card-good">
+            <div class="aqi-card-header">
+              <span class="aqi-range">0 – 50</span>
+              <span class="aqi-name">Good</span>
+            </div>
+            <p class="aqi-impact">Minimal health impact. Air quality is safe for all age groups and outdoor workouts.</p>
+            <div class="aqi-indicator"></div>
+          </div>
+          <div class="aqi-card card-satisfactory">
+            <div class="aqi-card-header">
+              <span class="aqi-range">51 – 100</span>
+              <span class="aqi-name">Satisfactory</span>
+            </div>
+            <p class="aqi-impact">May cause minor breathing discomfort to sensitive individuals on prolonged exposure.</p>
+            <div class="aqi-indicator"></div>
+          </div>
+          <div class="aqi-card card-moderate">
+            <div class="aqi-card-header">
+              <span class="aqi-range">101 – 200</span>
+              <span class="aqi-name">Moderate</span>
+            </div>
+            <p class="aqi-impact">Breathing discomfort to asthmatics, children, and elderly with lung or heart ailments.</p>
+            <div class="aqi-indicator"></div>
+          </div>
+          <div class="aqi-card card-poor">
+            <div class="aqi-card-header">
+              <span class="aqi-range">201 – 300</span>
+              <span class="aqi-name">Poor</span>
+            </div>
+            <p class="aqi-impact">Breathing discomfort to most people on prolonged exposure; wear N95 mask outdoors.</p>
+            <div class="aqi-indicator"></div>
+          </div>
+          <div class="aqi-card card-very-poor">
+            <div class="aqi-card-header">
+              <span class="aqi-range">301 – 400</span>
+              <span class="aqi-name">Very Poor</span>
+            </div>
+            <p class="aqi-impact">Can trigger respiratory illness on prolonged exposure; keep windows sealed and run HEPA filter.</p>
+            <div class="aqi-indicator"></div>
+          </div>
+          <div class="aqi-card card-severe">
+            <div class="aqi-card-header">
+              <span class="aqi-range">401 – 500</span>
+              <span class="aqi-name">Severe</span>
+            </div>
+            <p class="aqi-impact">Affects healthy people and seriously impacts vulnerable patients; avoid all outdoor exertion.</p>
+            <div class="aqi-indicator"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key Project Pillars -->
+      <div class="section-block">
+        <div class="section-title-wrap">
+          <h2 class="section-title">Key Pillars of AirAssist</h2>
+          <p class="section-subtitle">How our platform bridges environmental data and clinical preventive medicine</p>
+        </div>
+        <div class="pillars-grid">
+          <div class="pillar-card">
+            <div class="pillar-icon bg-blue"><i class="fa-solid fa-satellite-dish"></i></div>
+            <h3>Genuine Real-Time Sensing</h3>
+            <p>Live sensor feeds with no synthetic or simulated metrics. Incorporates atmospheric Copernicus/CAMS reanalysis with ground station readings.</p>
+          </div>
+          <div class="pillar-card">
+            <div class="pillar-icon bg-green"><i class="fa-solid fa-database"></i></div>
+            <h3>Authentic data.gov.in Dataset</h3>
+            <p>Direct integration with official Central Pollution Control Board (CPCB) historical datasets covering 288 cities and 565 monitoring stations across India.</p>
+          </div>
+          <div class="pillar-card">
+            <div class="pillar-icon bg-purple"><i class="fa-solid fa-brain"></i></div>
+            <h3>AI Health Advisory RAG</h3>
+            <p>Clinical guidance grounded in WHO (2021) and ICMR standards. Personalized for asthmatics, children, elderly, and outdoor gig workers.</p>
+          </div>
+          <div class="pillar-card">
+            <div class="pillar-icon bg-orange"><i class="fa-solid fa-kit-medical"></i></div>
+            <h3>Medical Guardrails & SOS</h3>
+            <p>Non-prescriptive ethical boundaries, pseudoscience filtering, and automatic emergency detection (dial 108/112 for acute respiratory distress).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- How AirAssist Works -->
+      <div class="section-block how-it-works-block">
+        <div class="section-title-wrap">
+          <h2 class="section-title">How AirAssist Works</h2>
+          <p class="section-subtitle">End-to-end pipeline from atmospheric ingestion to personalized protection</p>
+        </div>
+        <div class="steps-flow">
+          <div class="flow-step">
+            <div class="step-num">01</div>
+            <h4>Spatial Query</h4>
+            <p>User selects their Indian city or enables GPS coordinates to lock onto the closest monitoring station.</p>
+          </div>
+          <div class="flow-step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+          <div class="flow-step">
+            <div class="step-num">02</div>
+            <h4>Dual Ingestion</h4>
+            <p>Queries live sensor streams for 6 key pollutants while pulling longitudinal baseline patterns from CPCB datasets.</p>
+          </div>
+          <div class="flow-step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+          <div class="flow-step">
+            <div class="step-num">03</div>
+            <h4>NAQI Calculation</h4>
+            <p>Computes the official Indian National Air Quality Index and identifies the dominant pollutant driving health risk.</p>
+          </div>
+          <div class="flow-step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+          <div class="flow-step">
+            <div class="step-num">04</div>
+            <h4>Clinical Synthesis</h4>
+            <p>AI matches pollutant exposure with user health profile to deliver clear mask, exercise, and indoor safety guidance.</p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- MODULE 2: REAL-TIME AIR QUALITY DASHBOARD                     -->
+    <!-- ============================================================= -->
+    <section id="tab-realtime" class="tab-pane">
+      
+      <!-- Dashboard Top Header Bar -->
+      <div class="dashboard-header-bar">
+        <div class="dh-left">
+          <div class="dh-city-badge">
+            <i class="fa-solid fa-location-crosshairs"></i>
+            <span id="rtCityTitle">Delhi, India</span>
+          </div>
+          <div class="dh-timestamp">
+            <i class="fa-regular fa-clock"></i> Last Updated: <span id="rtTimestamp">Fetching...</span>
+          </div>
+        </div>
+        <div class="dh-right">
+          <div class="data-source-pill" title="Atmospheric data source">
+            <i class="fa-solid fa-circle-check"></i> Genuine Open-Meteo & CAMS Gateway
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="refreshRealtimeData()">
+            <i class="fa-solid fa-rotate-right" id="refreshIcon"></i> Refresh Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Real-Time Error Alert (Shown only if data cannot be fetched) -->
+      <div id="rtErrorAlert" class="alert-box alert-warning hidden">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div class="alert-content">
+          <strong>Data Gateway Notification:</strong>
+          <span id="rtErrorMessage">Unable to reach sensor gateway. Please check your internet connection.</span>
+        </div>
+      </div>
+
+      <!-- Primary Metrics Grid -->
+      <div class="realtime-hero-grid">
+        
+        <!-- Large Primary AQI Gauge Card -->
+        <div class="card gauge-card">
+          <div class="card-label">Overall Air Quality Index (CPCB NAQI)</div>
+          <div class="gauge-display-wrap">
+            <div class="aqi-circle" id="rtAqiCircle">
+              <span class="aqi-main-number" id="rtAqiValue">--</span>
+              <span class="aqi-unit-label">AQI</span>
+            </div>
+            <div class="aqi-info-column">
+              <div class="aqi-tier-badge" id="rtTierBadge">Checking...</div>
+              <div class="aqi-prominent-sub">
+                Prominent Pollutant: <strong id="rtProminentPollutant">--</strong>
+              </div>
+              <div class="aqi-us-compare">
+                US EPA AQI: <span id="rtUsAqi">--</span>
+              </div>
+              <p class="aqi-card-summary" id="rtHealthImpact">
+                Loading clinical health impact advisory...
+              </p>
+            </div>
+          </div>
+          <div class="gauge-footer-advisory" id="rtAdvisoryText">
+            Advisory: Running analysis...
+          </div>
+        </div>
+
+        <!-- Weather Conditions Card -->
+        <div class="card weather-card">
+          <div class="card-label">Meteorological Conditions</div>
+          <div class="weather-row">
+            <div class="weather-item">
+              <div class="weather-icon"><i class="fa-solid fa-temperature-half"></i></div>
+              <div class="weather-details">
+                <span class="w-val" id="rtTemp">--</span>
+                <span class="w-lbl">Temperature</span>
+              </div>
+            </div>
+            <div class="weather-item">
+              <div class="weather-icon"><i class="fa-solid fa-droplet"></i></div>
+              <div class="weather-details">
+                <span class="w-val" id="rtHumidity">--</span>
+                <span class="w-lbl">Relative Humidity</span>
+              </div>
+            </div>
+          </div>
+          <div class="weather-note">
+            <i class="fa-solid fa-circle-info"></i> Temperature inversions and high humidity trap particulate matter closer to the ground, elevating breathing risks.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Pollutant Concentrations Grid (6 Pollutants) -->
+      <div class="section-sub-header">
+        <h3>Specific Pollutant Concentrations & Breakpoints</h3>
+        <p>Measured in micro-grams per cubic meter (μg/m³) vs. WHO & CPCB reference standards</p>
+      </div>
+
+      <div class="pollutant-cards-grid">
+        
+        <!-- PM2.5 -->
+        <div class="card pollutant-card" id="cardPM25">
+          <div class="p-card-top">
+            <span class="p-name">PM2.5</span>
+            <span class="p-tag tag-critical">Fine Particulate</span>
+          </div>
+          <div class="p-val-row">
+            <span class="p-value" id="valPM25">--</span>
+            <span class="p-unit">μg/m³</span>
+          </div>
+          <div class="p-progress-wrap">
+            <div class="p-progress-bar"><div class="p-fill" id="fillPM25" style="width: 0%"></div></div>
+          </div>
+          <div class="p-limits-row">
+            <span>WHO 24h: <strong>15 μg/m³</strong></span>
+            <span>CPCB: <strong>60 μg/m³</strong></span>
+          </div>
+          <div class="p-desc">Deep lung penetrating particles. Major driver of cardiovascular & respiratory risk.</div>
+        </div>
+
+        <!-- PM10 -->
+        <div class="card pollutant-card" id="cardPM10">
+          <div class="p-card-top">
+            <span class="p-name">PM10</span>
+            <span class="p-tag tag-warning">Coarse Particulate</span>
+          </div>
+          <div class="p-val-row">
+            <span class="p-value" id="valPM10">--</span>
+            <span class="p-unit">μg/m³</span>
+          </div>
+          <div class="p-progress-wrap">
+            <div class="p-progress-bar"><div class="p-fill" id="fillPM10" style="width: 0%"></div></div>
+          </div>
+          <div class="p-limits-row">
+            <span>WHO 24h: <strong>45 μg/m³</strong></span>
+            <span>CPCB: <strong>100 μg/m³</strong></span>
+          </div>
+          <div class="p-desc">Dust, pollen, and construction particulates that irritate upper airways and eyes.</div>
+        </div>
+
+        <!-- CO (Carbon Monoxide) -->
+        <div class="card pollutant-card" id="cardCO">
+          <div class="p-card-top">
+            <span class="p-name">CO</span>
+            <span class="p-tag tag-info">Carbon Monoxide</span>
+          </div>
+          <div class="p-val-row">
+            <span class="p-value" id="valCO">--</span>
+            <span class="p-unit">mg/m³</span>
+          </div>
+          <div class="p-progress-wrap">
+            <div class="p-progress-bar"><div class="p-fill" id="fillCO" style="width: 0%"></div></div>
+          </div>
+          <div class="p-limits-row">
+            <span>WHO 24h: <strong>4 mg/m³</strong></span>
+            <span>CPCB 8h: <strong>2.0 mg/m³</strong></span>
+          </div>
+          <div class="p-desc">Colorless gas from incomplete combustion; impairs oxygen delivery to vital organs.</div>
+        </div>
+
+        <!-- NO2 (Nitrogen Dioxide) -->
+        <div class="card pollutant-card" id="cardNO2">
+          <div class="p-card-top">
+            <span class="p-name">NO2</span>
+            <span class="p-tag tag-warning">Nitrogen Dioxide</span>
+          </div>
+          <div class="p-val-row">
+            <span class="p-value" id="valNO2">--</span>
+            <span class="p-unit">μg/m³</span>
+          </div>
+          <div class="p-progress-wrap">
+            <div class="p-progress-bar"><div class="p-fill" id="fillNO2" style="width: 0%"></div></div>
+          </div>
+          <div class="p-limits-row">
+            <span>WHO 24h: <strong>25 μg/m³</strong></span>
+            <span>CPCB: <strong>80 μg/m³</strong></span>
+          </div>
+          <div class="p-desc">Emitted from vehicular exhaust and power stations. Increases asthma hospitalizations.</div>
+        </div>
+
+        <!-- SO2 (Sulphur Dioxide) -->
+        <div class="card pollutant-card" id="cardSO2">
+          <div class="p-card-top">
+            <span class="p-name">SO2</span>
+            <span class="p-tag tag-info">Sulphur Dioxide</span>
+          </div>
+          <div class="p-val-row">
+            <span class="p-value" id="valSO2">--</span>
+            <span class="p-unit">μg/m³</span>
+          </div>
+          <div class="p-progress-wrap">
+            <div class="p-progress-bar"><div class="p-fill" id="fillSO2" style="width: 0%"></div></div>
+          </div>
+          <div class="p-limits-row">
+            <span>WHO 24h: <strong>40 μg/m³</strong></span>
+            <span>CPCB: <strong>80 μg/m³</strong></span>
+          </div>
+          <div class="p-desc">Produced by industrial fuel and coal combustion; causes bronchoconstriction.</div>
+        </div>
+
+        <!-- O3 (Ozone) -->
+        <div class="card pollutant-card" id="cardO3">
+          <div class="p-card-top">
+            <span class="p-name">O3</span>
+            <span class="p-tag tag-warning">Ground Ozone</span>
+          </div>
+          <div class="p-val-row">
+            <span class="p-value" id="valO3">--</span>
+            <span class="p-unit">μg/m³</span>
+          </div>
+          <div class="p-progress-wrap">
+            <div class="p-progress-bar"><div class="p-fill" id="fillO3" style="width: 0%"></div></div>
+          </div>
+          <div class="p-limits-row">
+            <span>WHO 8h: <strong>100 μg/m³</strong></span>
+            <span>CPCB 8h: <strong>100 μg/m³</strong></span>
+          </div>
+          <div class="p-desc">Formed by sunlight reacting with NOx and VOCs; triggers chest tightness and coughing.</div>
+        </div>
+
+      </div>
+
+      <!-- 24-Hour Forecast Chart & Map -->
+      <div class="dashboard-charts-grid">
+        <div class="card chart-card">
+          <div class="chart-header">
+            <div>
+              <h3>24-Hour Hourly Pollution Forecast</h3>
+              <p class="chart-sub">Anticipate diurnal peaks to plan outdoor activities safely</p>
+            </div>
+            <div class="chart-legend-custom">
+              <span class="leg-item"><span class="dot bg-red"></span> PM2.5</span>
+              <span class="leg-item"><span class="dot bg-blue"></span> PM10</span>
+              <span class="leg-item"><span class="dot bg-purple"></span> AQI</span>
+            </div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="hourlyForecastChart"></canvas>
+          </div>
+        </div>
+
+        <!-- City Location Map Card -->
+        <div class="card map-card">
+          <div class="chart-header">
+            <div>
+              <h3>Monitoring Station Location</h3>
+              <p class="chart-sub" id="mapSub">Spatial telemetry coordinates for <span id="mapCityName">Delhi</span></p>
+            </div>
+          </div>
+          <div id="cityMap" class="map-container"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- MODULE 3: HISTORICAL AIR QUALITY ANALYSIS (data.gov.in)       -->
+    <!-- ============================================================= -->
+    <section id="tab-historical" class="tab-pane">
+      
+      <!-- Sub-Tabs Header -->
+      <div class="sub-tab-bar">
+        <button class="sub-tab-btn active" data-sub="comparison" onclick="switchSubTab('comparison')">
+          <i class="fa-solid fa-code-compare"></i> City-Wise Comparison
+        </button>
+        <button class="sub-tab-btn" data-sub="leaderboard" onclick="switchSubTab('leaderboard')">
+          <i class="fa-solid fa-ranking-star"></i> Top Polluted Cities
+        </button>
+        <button class="sub-tab-btn" data-sub="timeseries" onclick="switchSubTab('timeseries')">
+          <i class="fa-solid fa-timeline"></i> Historical Trends (CPCB 2015)
+        </button>
+        <button class="sub-tab-btn" data-sub="explorer" onclick="switchSubTab('explorer')">
+          <i class="fa-solid fa-table"></i> Raw Data Explorer
+        </button>
+        <button class="sub-tab-btn" data-sub="gallery" onclick="switchSubTab('gallery')">
+          <i class="fa-solid fa-image"></i> Python Analysis Plots
+        </button>
+      </div>
+
+      <!-- SUB-TAB 1: City-Wise Comparison -->
+      <div id="subtab-comparison" class="subtab-content active">
+        <div class="card filter-card">
+          <div class="filter-flex">
+            <div>
+              <h4>Select Cities to Compare Side-by-Side:</h4>
+              <p class="filter-sub">Select 2 to 5 Indian cities from the official data.gov.in CPCB dataset</p>
+            </div>
+            <div class="compare-pill-selector" id="compareCityPills">
+              <!-- Dynamically populated or default selected cities -->
+            </div>
+          </div>
+          <div class="quick-compare-actions">
+            <span>Presets:</span>
+            <button class="btn btn-outline btn-xs" onclick="setComparePreset(['Delhi', 'Bengaluru', 'Mumbai', 'Kolkata'])">Major Metros</button>
+            <button class="btn btn-outline btn-xs" onclick="setComparePreset(['Sirsa', 'Hisar', 'Bhiwani', 'Baghpat'])">Top PM2.5 Hotspots</button>
+            <button class="btn btn-outline btn-xs" onclick="setComparePreset(['Patna', 'Lucknow', 'Ahmedabad', 'Pune'])">Tier-1 Urban Centers</button>
+          </div>
+        </div>
+
+        <div class="comparison-charts-grid">
+          <div class="card">
+            <h3>Particulate Comparison (PM2.5 & PM10)</h3>
+            <p class="chart-sub">Micro-grams per cubic meter (μg/m³)</p>
+            <div class="chart-canvas-wrap">
+              <canvas id="compareParticulateChart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Gaseous Pollutants (NO2, SO2, CO, OZONE)</h3>
+            <p class="chart-sub">Average atmospheric concentration</p>
+            <div class="chart-canvas-wrap">
+              <canvas id="compareGasesChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB 2: Top Polluted Cities Leaderboards -->
+      <div id="subtab-leaderboard" class="subtab-content">
+        <div class="leaderboard-control-row">
+          <div class="lb-title">
+            <h3>Top Polluted Cities in India (Official CPCB Dataset)</h3>
+            <p>Directly analyzed from <code>data/processed/air_quality_cleaned.csv</code></p>
+          </div>
+          <div class="pollutant-toggle-group">
+            <button class="toggle-btn active" data-pol="PM2.5" onclick="loadLeaderboard('PM2.5')">PM2.5</button>
+            <button class="toggle-btn" data-pol="PM10" onclick="loadLeaderboard('PM10')">PM10</button>
+            <button class="toggle-btn" data-pol="NO2" onclick="loadLeaderboard('NO2')">NO2</button>
+            <button class="toggle-btn" data-pol="SO2" onclick="loadLeaderboard('SO2')">SO2</button>
+            <button class="toggle-btn" data-pol="CO" onclick="loadLeaderboard('CO')">CO</button>
+          </div>
+        </div>
+
+        <div class="leaderboard-grid">
+          <!-- Horizontal Bar Chart -->
+          <div class="card chart-card">
+            <h4 id="lbChartTitle">Top 10 Cities by Average PM2.5 Concentration</h4>
+            <div class="chart-canvas-wrap">
+              <canvas id="leaderboardChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Ranked Cards List -->
+          <div class="card ranks-card">
+            <h4>City Rank Details</h4>
+            <div class="ranks-list" id="leaderboardList">
+              <!-- Populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB 3: Historical Time Series (CPCB 2015 Tamil Nadu) -->
+      <div id="subtab-timeseries" class="subtab-content">
+        <div class="card banner-card">
+          <div class="banner-badge">CPCB Multi-Month Time Series</div>
+          <h3>Longitudinal Air Pollution Trends (Tamil Nadu 2015 Dataset)</h3>
+          <p>
+            Analyzing 2,302 authentic daily observations from <code>data/raw/cpcb_dly_aq_tamil_nadu-2015.csv</code> 
+            across Chennai, Coimbatore, Madurai, Salem, and industrial monitoring hubs.
+          </p>
+        </div>
+
+        <div class="timeseries-charts-grid">
+          <!-- Monthly Trend Line Chart -->
+          <div class="card chart-card-full">
+            <h3>12-Month Longitudinal Trend (Jan – Dec 2015)</h3>
+            <p class="chart-sub">Observing seasonal fluctuations in RSPM/PM10, NO2, and SO2</p>
+            <div class="chart-canvas-wrap">
+              <canvas id="monthlyTrendChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Seasonal Comparison -->
+          <div class="card">
+            <h3>Seasonal Exposure Profile</h3>
+            <p class="chart-sub">Winter vs. Summer vs. Monsoon / Post-Monsoon</p>
+            <div class="chart-canvas-wrap">
+              <canvas id="seasonalChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Industrial vs Residential Area -->
+          <div class="card">
+            <h3>Industrial Area vs. Residential / Rural</h3>
+            <p class="chart-sub">Pollution disparity across zoning typologies</p>
+            <div class="chart-canvas-wrap">
+              <canvas id="zoningChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB 4: Raw Data Explorer -->
+      <div id="subtab-explorer" class="subtab-content">
+        <div class="card filter-card">
+          <div class="explorer-filters">
+            <div class="filter-item">
+              <label>Filter by State:</label>
+              <input type="text" id="filterState" class="form-control" placeholder="e.g. Bihar, Delhi, Haryana..." />
+            </div>
+            <div class="filter-item">
+              <label>Filter by City:</label>
+              <input type="text" id="filterCity" class="form-control" placeholder="e.g. Patna, Sirsa, Purnia..." />
+            </div>
+            <div class="filter-item">
+              <label>Filter by Pollutant:</label>
+              <select id="filterPollutant" class="form-control">
+                <option value="">All Pollutants</option>
+                <option value="PM2.5">PM2.5</option>
+                <option value="PM10">PM10</option>
+                <option value="NO2">NO2</option>
+                <option value="SO2">SO2</option>
+                <option value="CO">CO</option>
+                <option value="OZONE">OZONE</option>
+                <option value="NH3">NH3</option>
+              </select>
+            </div>
+            <div class="filter-item filter-btn-wrap">
+              <button class="btn btn-primary" onclick="loadExplorerData(1)">
+                <i class="fa-solid fa-filter"></i> Apply Filters
+              </button>
+              <button class="btn btn-outline" onclick="resetExplorerFilters()">
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card table-card">
+          <div class="table-responsive">
+            <table class="data-table" id="rawDataTable">
+              <thead>
+                <tr>
+                  <th>State</th>
+                  <th>City</th>
+                  <th>Station</th>
+                  <th>Pollutant</th>
+                  <th>Min</th>
+                  <th>Max</th>
+                  <th>Average</th>
+                  <th>Updated</th>
+                </tr>
+              </thead>
+              <tbody id="dataTableBody">
+                <!-- Populated by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+          <div class="table-pagination">
+            <span id="paginationInfo">Showing records 1 to 25</span>
+            <div class="pagination-buttons">
+              <button class="btn btn-outline btn-xs" id="btnPrevPage" onclick="changeExplorerPage(-1)" disabled>
+                <i class="fa-solid fa-chevron-left"></i> Previous
+              </button>
+              <span id="pageCounter">Page 1</span>
+              <button class="btn btn-outline btn-xs" id="btnNextPage" onclick="changeExplorerPage(1)">
+                Next <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB 5: Python Analysis Plots Gallery -->
+      <div id="subtab-gallery" class="subtab-content">
+        <div class="gallery-grid">
+          <div class="card gallery-card">
+            <div class="gallery-img-wrap">
+              <img src="/visualizations/top_10_pm25_cities.png" alt="Top 10 PM2.5 Cities Plot" onerror="this.src='https://via.placeholder.com/800x400?text=Run+visualize_data.py+to+generate+plot'" />
+            </div>
+            <div class="gallery-info">
+              <h4>Top 10 Cities by Average PM2.5 Measurement</h4>
+              <p>Generated by <code>visualize_data.py</code> using your cleaned <code>air_quality_cleaned.csv</code> dataset. Highlights severe PM2.5 concentrations in Haryana and Uttar Pradesh.</p>
+              <span class="file-tag"><i class="fa-solid fa-file-code"></i> data/visualizations/top_10_pm25_cities.png</span>
+            </div>
+          </div>
+
+          <div class="card gallery-card">
+            <div class="gallery-img-wrap">
+              <img src="/visualizations/top_10_pm10_cities.png" alt="Top 10 PM10 Cities Plot" onerror="this.src='https://via.placeholder.com/800x400?text=Run+visualize_pm10.py+to+generate+plot'" />
+            </div>
+            <div class="gallery-info">
+              <h4>Top 10 Cities by Average PM10 Measurement</h4>
+              <p>Generated by <code>visualize_pm10.py</code>. Illustrates extreme coarse particulate matter loading from agricultural dust, construction, and road dust resuspension.</p>
+              <span class="file-tag"><i class="fa-solid fa-file-code"></i> data/visualizations/top_10_pm10_cities.png</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- MODULE 4: AI HEALTH ADVISOR & RAG CHATBOT                     -->
+    <!-- ============================================================= -->
+    <section id="tab-chatbot" class="tab-pane">
+      
+      <div class="chatbot-container">
+        
+        <!-- Left Sidebar: Persona & Real-time Context -->
+        <div class="chat-sidebar">
+          
+          <!-- Real-Time Environmental Context Card -->
+          <div class="card sidebar-context-card">
+            <div class="card-label">Active Environmental Context</div>
+            <div class="context-city-row">
+              <i class="fa-solid fa-location-dot"></i>
+              <strong id="chatContextCity">Delhi</strong>
+            </div>
+            <div class="context-aqi-row">
+              <span class="context-aqi-num" id="chatContextAqi">--</span>
+              <span class="badge" id="chatContextBadge">Checking</span>
+            </div>
+            <div class="context-sub-info" id="chatContextPollutants">
+              Loading pollutant telemetry...
+            </div>
+          </div>
+
+          <!-- Demographic Persona Selector -->
+          <div class="card sidebar-persona-card">
+            <div class="card-label">Select Your Health Profile</div>
+            <p class="persona-sub">Advice is personalized to your demographic vulnerability:</p>
+            
+            <div class="persona-radio-group">
+              <label class="persona-label active" onclick="selectPersona('General Adult', this)">
+                <input type="radio" name="persona" value="General Adult" checked />
+                <div class="persona-icon"><i class="fa-solid fa-user"></i></div>
+                <div class="persona-meta">
+                  <strong>General Healthy Adult</strong>
+                  <span>Standard environmental vigilance</span>
+                </div>
+              </label>
+
+              <label class="persona-label" onclick="selectPersona('Asthmatic / Respiratory', this)">
+                <input type="radio" name="persona" value="Asthmatic / Respiratory" />
+                <div class="persona-icon"><i class="fa-solid fa-lungs"></i></div>
+                <div class="persona-meta">
+                  <strong>Asthmatic / COPD / Respiratory</strong>
+                  <span>Airway hyper-reactivity protection</span>
+                </div>
+              </label>
+
+              <label class="persona-label" onclick="selectPersona('Senior Citizen (65+)', this)">
+                <input type="radio" name="persona" value="Senior Citizen (65+)" />
+                <div class="persona-icon"><i class="fa-solid fa-person-cane"></i></div>
+                <div class="persona-meta">
+                  <strong>Senior Citizen (65+)</strong>
+                  <span>Cardiovascular & stroke prevention</span>
+                </div>
+              </label>
+
+              <label class="persona-label" onclick="selectPersona('Child / School Student', this)">
+                <input type="radio" name="persona" value="Child / School Student" />
+                <div class="persona-icon"><i class="fa-solid fa-child"></i></div>
+                <div class="persona-meta">
+                  <strong>Child / School Student</strong>
+                  <span>High breathing dose protection</span>
+                </div>
+              </label>
+
+              <label class="persona-label" onclick="selectPersona('Outdoor / Gig Worker', this)">
+                <input type="radio" name="persona" value="Outdoor / Gig Worker" />
+                <div class="persona-icon"><i class="fa-solid fa-motorcycle"></i></div>
+                <div class="persona-meta">
+                  <strong>Outdoor / Gig Worker</strong>
+                  <span>Prolonged 8-10 hour exposure</span>
+                </div>
+              </label>
+
+              <label class="persona-label" onclick="selectPersona('Runner / Fitness Athlete', this)">
+                <input type="radio" name="persona" value="Runner / Fitness Athlete" />
+                <div class="persona-icon"><i class="fa-solid fa-person-running"></i></div>
+                <div class="persona-meta">
+                  <strong>Runner / Fitness Athlete</strong>
+                  <span>High ventilation aerobic guidance</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Medical Disclaimer Card -->
+          <div class="card disclaimer-card">
+            <i class="fa-solid fa-shield-halved"></i>
+            <p><strong>Clinical Guardrail:</strong> AirAssist provides evidence-based preventive health recommendations grounded in WHO (2021) and ICMR advisories. It does not replace emergency clinical triage or medical prescriptions.</p>
+          </div>
+
+        </div>
+
+        <!-- Right Main: Chat Area -->
+        <div class="chat-main card">
+          
+          <div class="chat-header">
+            <div class="chat-header-info">
+              <div class="chat-avatar"><i class="fa-solid fa-robot"></i></div>
+              <div>
+                <div class="chat-title">AirAssist Health Advisor</div>
+                <div class="chat-status"><span class="status-dot"></span> Retrieval-Augmented Generation Active</div>
+              </div>
+            </div>
+            <div class="chat-badge-current" id="chatHeaderBadge">
+              City: <strong id="chatCityLabel">Delhi</strong>
+            </div>
+          </div>
+
+          <!-- Chat Conversation Stream -->
+          <div class="chat-stream" id="chatStream">
+            <!-- Initial Greeting -->
+            <div class="chat-bubble bot-bubble">
+              <div class="bubble-header">
+                <i class="fa-solid fa-robot"></i> AirAssist AI
+              </div>
+              <div class="bubble-body">
+                Hello! I am your <strong>AirAssist Health Advisor</strong>. I continuously track the real-time air quality in your city and provide clinical precautions grounded in WHO and ICMR guidelines.
+                <br /><br />
+                How can I assist your health and outdoor decisions today? You can select a quick question below or type your inquiry.
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Question Chips -->
+          <div class="quick-queries-wrap">
+            <button class="query-chip" onclick="sendQuickQuery('Can I go for a run or outdoor walk today?')">
+              🏃 Can I run outdoors today?
+            </button>
+            <button class="query-chip" onclick="sendQuickQuery('What mask should I wear for commuting today?')">
+              😷 Best mask for commuting?
+            </button>
+            <button class="query-chip" onclick="sendQuickQuery('Should school outdoor sports be canceled today?')">
+              🏫 Should school sports be canceled?
+            </button>
+            <button class="query-chip" onclick="sendQuickQuery('Is an air purifier needed for my bedroom right now?')">
+              💨 Do I need an air purifier?
+            </button>
+            <button class="query-chip" onclick="sendQuickQuery('I have asthma and chest tightness. What precautions should I take?')">
+              🫁 Asthmatic chest tightness precautions
+            </button>
+          </div>
+
+          <!-- Chat Input Form -->
+          <form class="chat-input-bar" id="chatForm" onsubmit="handleChatSubmit(event)">
+            <input type="text" id="chatInput" placeholder="Ask about workouts, masks, purifiers, or child safety in your city..." autocomplete="off" />
+            <button type="submit" class="btn btn-primary" id="btnSendChat">
+              <i class="fa-solid fa-paper-plane"></i> Send
+            </button>
+          </form>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- MODULE 5: HEALTH AWARENESS & CLINICAL GUIDE                   -->
+    <!-- ============================================================= -->
+    <section id="tab-awareness" class="tab-pane">
+      
+      <div class="awareness-hero card">
+        <div class="badge"><i class="fa-solid fa-book-medical"></i> Public Health Knowledge Base</div>
+        <h2>Clinical Understanding of Air Pollutants & Respiratory Protection</h2>
+        <p>Scientific guidelines compiled from the World Health Organization (WHO), Indian Council of Medical Research (ICMR), and AIIMS Delhi.</p>
+      </div>
+
+      <div class="awareness-grid">
+        
+        <!-- PM2.5 vs PM10 -->
+        <div class="card awareness-card">
+          <div class="aw-icon bg-red"><i class="fa-solid fa-bacteria"></i></div>
+          <h3>PM2.5 vs. PM10: Particle Dynamics</h3>
+          <p>
+            <strong>PM2.5:</strong> Combustible fine particles under 2.5 microns (1/30th the diameter of human hair). Because of their microscopic size, they bypass nasal cilia, settle deep into alveolar air sacs, and cross into capillaries, promoting coronary artery inflammation and thrombotic events.
+          </p>
+          <p>
+            <strong>PM10:</strong> Inhalable coarse dust particles under 10 microns (road dust, construction debris, pollen). Primarily deposit in upper airways, causing nasopharyngeal irritation, sinus headaches, and acute asthma exacerbations.
+          </p>
+        </div>
+
+        <!-- Gaseous Pollutants -->
+        <div class="card awareness-card">
+          <div class="aw-icon bg-orange"><i class="fa-solid fa-smog"></i></div>
+          <h3>Toxic Gaseous Compounds</h3>
+          <p>
+            <strong>Nitrogen Dioxide (NO2):</strong> A pungent red-brown gas from vehicular combustion. Damages airway epithelial cells and exacerbates bronchitis in children.
+          </p>
+          <p>
+            <strong>Carbon Monoxide (CO):</strong> Binds to blood hemoglobin with 200x greater affinity than oxygen, forming carboxyhemoglobin ($COHb$) and starving myocardium and cerebral tissues of oxygen.
+          </p>
+          <p>
+            <strong>Ground-level Ozone (O3):</strong> Secondary photochemical pollutant formed on sunny afternoons. Triggers immediate chest tightness and reduces lung function.
+          </p>
+        </div>
+
+        <!-- Mask Efficacy Guide -->
+        <div class="card awareness-card">
+          <div class="aw-icon bg-green"><i class="fa-solid fa-head-side-mask"></i></div>
+          <h3>Mask Selection: What Actually Protects</h3>
+          <ul class="aw-list">
+            <li><strong>Cloth & Handkerchiefs:</strong> Filter less than 15-20% of PM2.5. Provide virtually zero sealing around the nose and jaw.</li>
+            <li><strong>Surgical Masks:</strong> Designed for outward droplet containment, not particulate filtration. Over 60% of ambient air leaks through loose side gaps.</li>
+            <li><strong>N95 / FFP2 / BIS 9473 Certified:</strong> Electrostatic meltblown nonwoven fabric capturing ≥95% of 0.3-micron particles. Mandatory for outdoor workers and two-wheeler commuters in AQI > 200.</li>
+          </ul>
+        </div>
+
+        <!-- Air Purifiers & Indoor Air -->
+        <div class="card awareness-card">
+          <div class="aw-icon bg-blue"><i class="fa-solid fa-fan"></i></div>
+          <h3>Indoor Air Quality Management</h3>
+          <ul class="aw-list">
+            <li><strong>True HEPA (H13 grade):</strong> Mechanically intercepts 99.97% of particulates without chemical byproducts.</li>
+            <li><strong>CADR (Clean Air Delivery Rate):</strong> Ensure purifier CADR is at least 2/3 of the room's cubic foot volume for 4–5 air changes per hour (ACH).</li>
+            <li><strong>Avoid Uncertified Ionizers:</strong> Electrostatic ionizers generate harmful secondary ozone ($O_3$) that damages respiratory membranes.</li>
+            <li><strong>Damp Mopping:</strong> Clean indoor surfaces with damp microfiber cloths to eliminate settled lead and soot particles.</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Vulnerability Guide Table -->
+      <div class="card section-block">
+        <h3>Vulnerable Population Action Matrix</h3>
+        <p class="section-subtitle">Recommended behavioral adjustments based on Indian National AQI bands</p>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>AQI Band</th>
+                <th>Healthy Population</th>
+                <th>Asthma / COPD Patients</th>
+                <th>Children & Elderly</th>
+                <th>Outdoor Gig Workers</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-good">0 – 50 (Good)</span></td>
+                <td>Ideal for all outdoor sports & running.</td>
+                <td>Normal routine; safe for walks.</td>
+                <td>Encourage outdoor play & recess.</td>
+                <td>Standard shift without mask.</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-satisfactory">51 – 100 (Satisfactory)</span></td>
+                <td>Safe for general activity.</td>
+                <td>Observe for mild throat irritation.</td>
+                <td>Safe for standard school activities.</td>
+                <td>Stay hydrated during sunny hours.</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-moderate">101 – 200 (Moderate)</span></td>
+                <td>Reduce continuous heavy sprint sessions.</td>
+                <td>Keep rescue inhaler accessible; wear mask on roads.</td>
+                <td>Limit prolonged aerobic sports practice.</td>
+                <td>N95 mask recommended in dense traffic.</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-poor">201 – 300 (Poor)</span></td>
+                <td>Avoid early morning runs; shift workouts indoors.</td>
+                <td>Remain indoors; avoid dusty roads; run purifier.</td>
+                <td>Cancel outdoor physical training sessions.</td>
+                <td>Mandatory N95 mask; frequent eye rinses.</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-very-poor">301 – 400 (Very Poor)</span></td>
+                <td>Keep windows closed; avoid outdoor exercise.</td>
+                <td>Strictly stay indoors; run HEPA filtration 24/7.</td>
+                <td>Keep children indoors; suspend school sports.</td>
+                <td>Rotate shifts; rest in filtered spaces.</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-severe">401 – 500+ (Severe)</span></td>
+                <td>Health emergency; avoid all outdoor exposure.</td>
+                <td>High risk of acute attack; keep physician on alert.</td>
+                <td>Severe hazard; keep doors & windows sealed.</td>
+                <td>Halt non-essential outdoor transit work.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-col brand-col">
+        <div class="footer-logo">
+          <span class="brand-title">Air<span class="accent-text">Assist</span></span>
+        </div>
+        <p class="footer-tagline">"Breathe Better. Live Healthier."</p>
+        <p class="footer-desc">
+          An AI-powered environmental health platform for Indian cities, transforming raw pollution indices into personalized, actionable preventive advice.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Data & Scientific Sources</h4>
+        <ul class="footer-links">
+          <li><i class="fa-solid fa-angle-right"></i> Central Pollution Control Board (CPCB)</li>
+          <li><i class="fa-solid fa-angle-right"></i> Open Government Data Platform (data.gov.in)</li>
+          <li><i class="fa-solid fa-angle-right"></i> Open-Meteo European CAMS / Copernicus</li>
+          <li><i class="fa-solid fa-angle-right"></i> World Health Organization (WHO) 2021</li>
+          <li><i class="fa-solid fa-angle-right"></i> Indian Council of Medical Research (ICMR)</li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Application Modules</h4>
+        <ul class="footer-links">
+          <li><a href="#" onclick="switchTab('realtime')">Real-Time AQI & Pollutants</a></li>
+          <li><a href="#" onclick="switchTab('historical')">City-Wise Historical Analysis</a></li>
+          <li><a href="#" onclick="switchTab('historical'); switchSubTab('leaderboard')">Top 10 Polluted Hotspots</a></li>
+          <li><a href="#" onclick="switchTab('chatbot')">AI Health Advisor (RAG)</a></li>
+          <li><a href="#" onclick="switchTab('awareness')">Mask & Purifier Guide</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Emergency Health Helpline</h4>
+        <div class="sos-card">
+          <div class="sos-number"><i class="fa-solid fa-phone-volume"></i> 108 / 112</div>
+          <p>National Emergency Ambulance Services across India for acute respiratory or cardiovascular distress.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="footer-bottom-container">
+        <span>© 2026 AirAssist Project. Built with authentic Indian CPCB and data.gov.in datasets.</span>
+        <span>All clinical guidelines grounded in WHO & ICMR peer-reviewed publications.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
